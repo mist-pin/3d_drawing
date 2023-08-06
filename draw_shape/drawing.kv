@@ -1,7 +1,16 @@
-<MyButton@Button>
-    size_hint:.1,.1
-    size_hint:None,None
-#    size:self.texture_size
+<MyButton>
+    size_hint:.1,None
+    height:self.width
+    background_normal:''
+    background_color:[0,0,0,.5]
+    on_pos:root.bg_fader()
+    canvas.before:
+        Color:
+            rgba:0,0,0,0
+        RoundedRectangle:
+            pos:self.pos
+            size:self.size
+            radius:[10]
 
 <DrawScreen>
     md_bg_color:[.1,.1,.1,1]
@@ -24,6 +33,11 @@
             pos:root.pos
             size_hint:1,1
     FloatLayout:
+        id:scroll_view
+        size_hint:.97,None
+        pos_hint:{'center_x':.5}
+        on_size:
+            root.on_bottom_sheet_size(self.height)
         canvas.before:
             Color:
                 rgba:[1,1,1,.1]
@@ -31,13 +45,9 @@
                 radius:[20,20,0,0]
                 size:self.size
                 pos:self.pos
-        id:scroll_view
-        size_hint:.97,None
-        pos_hint:{'center_x':.5}
         BoxLayout:
             pos_hint:{'center_x':.5}
             orientation:'vertical'
-            padding:[10]
             BoxLayout:
                 size_hint:None,None
                 height:self.minimum_height
@@ -47,49 +57,35 @@
                     size_hint:None,None
                     size:50,15
                 BottomSheetWidget:
-                    canvas.before:
-                        Color:
-                            rgba:[1,1,1,1]
-                        RoundedRectangle:
-                            radius:[4]
-                            size:self.size
-                            pos:self.pos
                     size_hint:None,None
                     pos_hint:{'center_x':.5}
                     size:50,8
+                    on_pos:self.color_fader()
                 Widget:
                     size_hint:None,None
-                    size:50,20
-            GridLayout:
+                    size:50,10
+            ScrollView:
                 pos_hint:{'center_x':.5}
-                canvas.before:
-                    Color:
-                        rgba:[1,1,1,1]
-                    RoundedRectangle:
-                        radius:[4]
-                        size:self.size
-                        pos:self.pos
-#                size_hint:None,None
-                cols:3
-                spacing:20
-                halign:'center'
-                MyButton:
-                    text:'save'
-                    on_press:sctrchild.export_to_png('hlo.png')
-                MyButton:
-                    text:'reset-size'
-                    on_press:root.reset(sctr)
-                MyButton:
-                    text:'lock_canvass'
-                MyButton:
-                    text:'new_layer'
-                MyButton:
-                    text:'color'
-                MyButton:
-                    text:'tools'
-                MyButton:
-                    text:'brush'
-                MyButton:
-                    text:'insert'
-                MyButton:
-                    text:'effects'
+                size_hint_x:.95
+                GridLayout:
+                    pos_hint:{'center_x':.5}
+                    cols:4
+                    spacing:10
+                    MyButton:
+                        text:'save'
+                    MyButton:
+                        text:'reset-size'
+                    MyButton:
+                        text:'lock_canvass'
+                    MyButton:
+                        text:'new_layer'
+                    MyButton:
+                        text:'color'
+                    MyButton:
+                        text:'tools'
+                    MyButton:
+                        text:'brush'
+                    MyButton:
+                        text:'insert'
+                    MyButton:
+                        text:'effects'

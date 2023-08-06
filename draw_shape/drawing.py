@@ -1,8 +1,17 @@
-from kivy.graphics import Mesh, Color, Ellipse
+from kivy.animation import Animation
+from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.label import Label
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.widget import Widget
 from kivymd.uix.screen import MDScreen
+
+bottom_sheet_fade = 'faded'
+
+
+def check_pos_distance(pos1: list, pos2: list) -> int:
+    pos = map(lambda x: x * -1 if x < 0 else x, [pos2[0] - pos1[0], pos2[1] - pos1[1]])
+    return int(sum(pos) / 2)
 
 
 class DrawScreen(MDScreen):
@@ -12,10 +21,10 @@ class DrawScreen(MDScreen):
         according_to.rotation = 0.0
         according_to.pos = [0, 0]
 
-
-def check_pos_distance(pos1: list, pos2: list) -> int:
-    pos = map(lambda x: x * -1 if x < 0 else x, [pos2[0] - pos1[0], pos2[1] - pos1[1]])
-    return int(sum(pos) / 2)
+    @staticmethod
+    def on_bottom_sheet_size(height):
+        global bottom_sheet_fade
+        bottom_sheet_fade = 'faded' if int(height) < 100 else 'not_faded'
 
 
 class TheMainCanvas(Label):
@@ -108,6 +117,9 @@ class MyScatterLayout(ScatterLayout):
 
 
 class BottomSheetWidget(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             touch.grab(self)
@@ -119,5 +131,76 @@ class BottomSheetWidget(Widget):
             if self.parent.parent.parent.height >= 800:
                 self.parent.parent.parent.height = 800
 
+    def color_fader(self):
+        Animation.stop_all(self)
+        Animation(width=50 if bottom_sheet_fade == 'faded' else 70, duration=.1).start(self)
+
+        with self.canvas.before:
+            self.canvas.before.clear()
+            Color(rgba=(1, 1, 1, .3) if bottom_sheet_fade == 'faded' else (1, 1, 1, 1))
+            RoundedRectangle(size=self.size, pos=self.pos, radius=[4])
+
+        with self.parent.parent.parent.canvas.before:
+            self.parent.parent.parent.canvas.before.clear()
+            Color(rgba=(.1, .1, .1, .5) if bottom_sheet_fade == 'faded' else (1, 1, 1, .3))
+            RoundedRectangle(size=self.parent.parent.parent.size, pos=self.parent.parent.parent.pos,
+                             radius=[20, 20, 0, 0])
+
+
+def on_touch_up(self, touch):
+    touch.ungrab(self)
+
+
+class MyButton(Label, ButtonBehavior):
+    def bg_fader(self):
+        with self.canvas.before:
+            self.canvas.before.clear()
+            Color(rgba=(0, 0, 0, .3) if bottom_sheet_fade == 'faded' else (0, 0, 0, 1))
+            RoundedRectangle(size=self.size, pos=self.pos)
+        if bottom_sheet_fade == 'faded':
+            self.color = [1, 1, 1, .3]
+        else:
+            self.color = [1, 1, 1, 1]
+
     def on_touch_up(self, touch):
-        touch.ungrab(self)
+        if self.collide_point(*touch.pos):
+            match self.text:
+                case 'save':
+                    drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
+                    drawing_canvas.ids['sctrchild'].export_to_png('hlo.png')
+                case 'reset-size':
+                    drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
+                    drawing_canvas.ids['sctr'].scale = 1.0
+                    drawing_canvas.ids['sctr'].rotation = 0.0
+                    drawing_canvas.ids['sctr'].pos = [0, 0]
+                case 'lock-canvas':
+                    drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
+                    drawing_canvas.ids['sctr'].do_scale = False if drawing_canvas.ids['sctr'].do_scale else True
+                    drawing_canvas.ids['sctr'].do_rotation = False if drawing_canvas.ids['sctr'].do_rotation else True
+                case 'new_layer':
+                    pass
+                case 'color':
+                    pass
+                case 'tools':
+                    pass
+                case 'brush':
+                    pass
+                case 'insert':
+                    pass
+                case 'effects':
+                    pass
+
+    def show_popup(self, for_what):
+        match for_what:
+            case 'new_layer':
+                pass  # show a popup for layer_selection
+            case 'color':
+                pass  # show a popup for color-picker
+            case 'tools':
+                pass  # show a popup for tools-picker
+            case 'brush':
+                pass  # show a popup for brushes
+            case 'insert':
+                pass  # show a popup for shapes
+            case 'effects':
+                pass  # show a popup for brushes
