@@ -1,0 +1,69 @@
+#:import PinView kivy-pinview.PinView
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
+<GetData>
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(40)
+        size_hint:1,1
+
+        Widget:
+            size_hint_y:.2
+
+        MDTextField:
+            id:login_email_input
+            multiline: False
+            mode:'rectangle'
+            size_hint: .9,.1
+            hint_text: 'Enter your email or phone no'
+            hint_text_color: 0.5, 0.5, 0.5, 1
+            halign:'center'
+            font_size:root.font_s
+            hint_text_color_focus:app.theme_cls.colors['Yellow']['100']
+            hint_text_color_normal:app.theme_cls.colors['Yellow']['400']
+            foreground_color:app.theme_cls.colors['Yellow']['100']
+            pos_hint:{'center_x':.5}
+            padding_y:(self.size[1]-5-self.font_size)/2
+
+        Widget:
+
+        MDRoundFlatButton:
+            text: 'Next'
+            size_hint: None, None
+            pos_hint:{'right':.8}
+            on_release:root.manager.transition = FadeTransition();  root.next_button_pressed()
+
+<VerifyData>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(40)
+        size_hint:1,1
+        Widget:
+            size_hint_y:.2
+
+        PinView:
+            id:pinview
+            size_hint_x:.9
+            pos_hint:{'center_x':.5}
+            box_spacing:10
+            box_radius:[15, 15]
+            box_bg_color:[1,1,0,.5]
+            text_color:[1,1,0,1]
+            font_size:30
+            on_otp:root.validate(pinview.otp)
+
+        Widget:
+
+        BoxLayout:
+            size_hint_y:None
+            MDRoundFlatButton:
+                text: 'Back'
+                size_hint: None, None
+                pos_hint:{'right':.8}
+                on_release:root.manager.transition = FadeTransition(); root.manager.current = 'GetData'
+            Widget:
+            MDRoundFlatButton:
+                text: 'Validate'
+                size_hint: None, None
+                pos_hint:{'right':.8}
+                on_release: root.validate(pinview.otp)
