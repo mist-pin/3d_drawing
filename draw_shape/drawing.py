@@ -24,7 +24,7 @@ class DrawScreen(MDScreen):
     @staticmethod
     def on_bottom_sheet_size(height):
         global bottom_sheet_fade
-        bottom_sheet_fade = 'faded' if int(height) < 100 else 'not_faded'
+        bottom_sheet_fade = 'faded' if int(height) < 300 else 'not_faded'
 
 
 class TheMainCanvas(Label):
@@ -119,17 +119,36 @@ class MyScatterLayout(ScatterLayout):
 class BottomSheetWidget(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.swipe_direction = 'up'
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             touch.grab(self)
 
     def on_touch_move(self, touch):
+        if touch.ppos[1] < touch.pos[1]:  # swiping up
+            self.swipe_direction = 'up'
+        else:
+            self.swipe_direction = 'down'
+
         if touch.grab_current is self:
             self.parent.parent.parent.canvas.ask_update()
-            self.parent.parent.parent.height = 50.1 if self.parent.parent.parent.height <= 50 else self.parent.parent.parent.height + touch.dy
+            self.parent.parent.parent.height = 30.1 if self.parent.parent.parent.height <= 30 else self.parent.parent.parent.height + touch.dy
             if self.parent.parent.parent.height >= 800:
                 self.parent.parent.parent.height = 800
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            if self.swipe_direction == 'up' and 30 < int(touch.pos[1]) <= 400:
+                Animation(height=400, duration=.3).start(self.parent.parent.parent)
+            elif self.swipe_direction == 'up' and 400 < int(touch.pos[1]) <= 800:
+                Animation(height=800, duration=.3).start(self.parent.parent.parent)
+            elif self.swipe_direction == 'down' and 30 < int(touch.pos[1]) <= 400:
+                Animation(height=30.1, duration=.3).start(self.parent.parent.parent)
+            elif self.swipe_direction == 'down' and 400 < int(touch.pos[1]) <= 800:
+                Animation(height=400, duration=.3).start(self.parent.parent.parent)
+
+            touch.ungrab(self)
 
     def color_fader(self):
         Animation.stop_all(self)
@@ -145,10 +164,6 @@ class BottomSheetWidget(Widget):
             Color(rgba=(.1, .1, .1, .5) if bottom_sheet_fade == 'faded' else (1, 1, 1, .3))
             RoundedRectangle(size=self.parent.parent.parent.size, pos=self.parent.parent.parent.pos,
                              radius=[20, 20, 0, 0])
-
-
-def on_touch_up(self, touch):
-    touch.ungrab(self)
 
 
 class MyButton(Label, ButtonBehavior):
@@ -190,7 +205,8 @@ class MyButton(Label, ButtonBehavior):
                 case 'effects':
                     pass
 
-    def show_popup(self, for_what):
+    @staticmethod
+    def show_popup(for_what):
         match for_what:
             case 'new_layer':
                 pass  # show a popup for layer_selection
