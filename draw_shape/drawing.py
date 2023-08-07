@@ -2,6 +2,7 @@ from kivy.animation import Animation
 from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.label import Label
+from kivy.uix.modalview import ModalView
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.widget import Widget
 from kivymd.uix.screen import MDScreen
@@ -126,9 +127,9 @@ class BottomSheetWidget(Widget):
             touch.grab(self)
 
     def on_touch_move(self, touch):
-        if touch.ppos[1] < touch.pos[1]:  # swiping up
+        if touch.ppos[1] < touch.pos[1]:  # swiping upwards
             self.swipe_direction = 'up'
-        else:
+        else:  # swiping downwards
             self.swipe_direction = 'down'
 
         if touch.grab_current is self:
@@ -166,6 +167,12 @@ class BottomSheetWidget(Widget):
                              radius=[20, 20, 0, 0])
 
 
+class PopUp_show(ModalView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.open()
+
+
 class MyButton(Label, ButtonBehavior):
     def bg_fader(self):
         with self.canvas.before:
@@ -193,7 +200,7 @@ class MyButton(Label, ButtonBehavior):
                     drawing_canvas.ids['sctr'].do_scale = False if drawing_canvas.ids['sctr'].do_scale else True
                     drawing_canvas.ids['sctr'].do_rotation = False if drawing_canvas.ids['sctr'].do_rotation else True
                 case 'new_layer':
-                    pass
+                    self.show_popup('new_layer')
                 case 'color':
                     pass
                 case 'tools':
@@ -209,7 +216,8 @@ class MyButton(Label, ButtonBehavior):
     def show_popup(for_what):
         match for_what:
             case 'new_layer':
-                pass  # show a popup for layer_selection
+                # show a popup for layer_selection
+                PopUp_show()
             case 'color':
                 pass  # show a popup for color-picker
             case 'tools':
