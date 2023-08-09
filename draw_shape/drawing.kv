@@ -39,7 +39,7 @@
             font_size:300
             pos:root.pos
             size_hint:1,1
-    FloatLayout:
+    BottomSheetBase:
         id:scroll_view
         size_hint:.97,None
         pos_hint:{'center_x':.5}
@@ -57,7 +57,7 @@
             pos_hint:{'center_x':.5}
             orientation:'vertical'
             BoxLayout:
-                size_hint:None,None
+                size_hint:1,None
                 height:self.minimum_height
                 orientation:'vertical'
                 pos_hint:{'center_x':.5,'top':1}

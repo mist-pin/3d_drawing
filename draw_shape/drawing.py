@@ -1,6 +1,8 @@
 from kivy.animation import Animation
+from kivy.clock import Clock
 from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from kivy.uix.scatterlayout import ScatterLayout
@@ -117,7 +119,9 @@ class MyScatterLayout(ScatterLayout):
     pass
 
 
-class BottomSheetWidget(Widget):
+class BottomSheetBase(FloatLayout):
+    pass
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.swipe_direction = 'up'
@@ -125,31 +129,44 @@ class BottomSheetWidget(Widget):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             touch.grab(self)
+            self.parent.children[1].disabled = True
 
     def on_touch_move(self, touch):
-        if touch.ppos[1] < touch.pos[1]:  # swiping upwards
+        if touch.ppos[1] < touch.pos[1]:
             self.swipe_direction = 'up'
         else:  # swiping downwards
             self.swipe_direction = 'down'
 
         if touch.grab_current is self:
-            self.parent.parent.parent.canvas.ask_update()
-            self.parent.parent.parent.height = 30.1 if self.parent.parent.parent.height <= 30 else self.parent.parent.parent.height + touch.dy
-            if self.parent.parent.parent.height >= 800:
-                self.parent.parent.parent.height = 800
+            self.canvas.ask_update()
+            self.height = 30.1 if self.height <= 30 else self.height + touch.dy
+            if self.height >= 800:
+                self.height = 800
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
-            if self.swipe_direction == 'up' and 30 < int(touch.pos[1]) <= 400:
-                Animation(height=400, duration=.3).start(self.parent.parent.parent)
-            elif self.swipe_direction == 'up' and 400 < int(touch.pos[1]) <= 800:
-                Animation(height=800, duration=.3).start(self.parent.parent.parent)
-            elif self.swipe_direction == 'down' and 30 < int(touch.pos[1]) <= 400:
-                Animation(height=30.1, duration=.3).start(self.parent.parent.parent)
-            elif self.swipe_direction == 'down' and 400 < int(touch.pos[1]) <= 800:
-                Animation(height=400, duration=.3).start(self.parent.parent.parent)
+            # for enabling disabled drawing canvas
+            if self.swipe_direction == 'down':
+                Clock.schedule_once(self.enable_canvas, .4)
 
+            if self.swipe_direction == 'up' and 30 < int(self.height) <= 400:
+                Animation(height=400, duration=.3).start(self)
+            elif self.swipe_direction == 'up' and 400 < int(self.height) <= 800:
+                Animation(height=800, duration=.3).start(self)
+            elif self.swipe_direction == 'down' and 30 < int(self.height) <= 400:
+                Animation(height=30.1, duration=.3).start(self)
+            elif self.swipe_direction == 'down' and 400 < int(self.height) <= 800:
+                Animation(height=400, duration=.3).start(self)
             touch.ungrab(self)
+
+    def enable_canvas(self, who):
+        if int(self.height) == 30:
+            self.parent.children[1].disabled = False
+
+
+class BottomSheetWidget(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def color_fader(self):
         Animation.stop_all(self)
