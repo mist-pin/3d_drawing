@@ -12,13 +12,6 @@
             size:self.size
             radius:[10]
 
-<PopUp_show>
-    background_color:[1,0,0,0]
-    auto_dismiss: True
-    size_hint:.7,.7
-    Button:
-        text: 'Close me!'
-        on_release: root.dismiss()
 <DrawScreen>
     md_bg_color:[.1,.1,.1,1]
     MyScatterLayout:
@@ -86,8 +79,6 @@
                     MyButton:
                         text:'lock_canvass'
                     MyButton:
-                        text:'new_layer'
-                    MyButton:
                         text:'color'
                     MyButton:
                         text:'tools'
@@ -97,3 +88,46 @@
                         text:'insert'
                     MyButton:
                         text:'effects'
+
+
+<Popup_show>
+    id:list_popup
+    background_color:[0,0,0,0]
+    size_hint:.8,.8
+    canvas.before:
+        Color:
+            rgba:[0,0,0,.1]
+        Rectangle:
+            size:self.size
+            pos:self.pos
+    ScrollView:
+        id:list_popup_scroll
+        do_scroll_x:False
+        bar_width:'0dp'
+        pos_hint:{'center_x':.5, 'center_y':.5}
+        size_hint:.9,.9
+        always_overscroll:False
+        BoxLayout:
+            id:list_popup_holder
+            spacing:5
+            size_hint:1,None
+            height:self.minimum_height
+            orientation:'vertical'
+            canvas.before:
+                Color:
+                    rgba:[0,0,0,1]
+                RoundedRectangle:
+                    radius:[20]
+                    size:self.size
+                    pos:self.pos
+            Label:
+                canvas.before:
+                    Color:
+                        rgba:[1,0,0,.4]
+                    RoundedRectangle:
+                        radius:[5]
+                        size:self.size
+                        pos:self.pos
+                text:'new_layer'
+                size_hint_y:None
+                height:80

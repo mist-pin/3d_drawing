@@ -1,6 +1,7 @@
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
+from kivy.lang import Builder
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
@@ -8,6 +9,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.widget import Widget
 from kivymd.uix.screen import MDScreen
+from . import util_cls
 
 bottom_sheet_fade = 'faded'
 
@@ -125,11 +127,17 @@ class BottomSheetBase(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.swipe_direction = 'up'
+        self.child_objects_for_touch_detection = None
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
+        self.child_objects_for_touch_detection = self.children[0].children[0].children[0].children
+        if self.collide_point(*touch.pos) and not any(
+                [child.collide_point(*touch.pos) for child in self.child_objects_for_touch_detection]):
             touch.grab(self)
             self.parent.children[1].disabled = True
+            return True
+        else:
+            return super().on_touch_down(touch)
 
     def on_touch_move(self, touch):
         if touch.ppos[1] < touch.pos[1]:
@@ -142,6 +150,7 @@ class BottomSheetBase(FloatLayout):
             self.height = 30.1 if self.height <= 30 else self.height + touch.dy
             if self.height >= 800:
                 self.height = 800
+            return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -158,6 +167,7 @@ class BottomSheetBase(FloatLayout):
             elif self.swipe_direction == 'down' and 400 < int(self.height) <= 800:
                 Animation(height=400, duration=.3).start(self)
             touch.ungrab(self)
+            return True
 
     def enable_canvas(self, who):
         if int(self.height) == 30:
@@ -201,47 +211,47 @@ class MyButton(Label, ButtonBehavior):
         else:
             self.color = [1, 1, 1, 1]
 
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            touch.grab(self)
+            return True
+
     def on_touch_up(self, touch):
         if self.collide_point(*touch.pos):
-            match self.text:
-                case 'save':
-                    drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
-                    drawing_canvas.ids['sctrchild'].export_to_png('hlo.png')
-                case 'reset-size':
-                    drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
-                    drawing_canvas.ids['sctr'].scale = 1.0
-                    drawing_canvas.ids['sctr'].rotation = 0.0
-                    drawing_canvas.ids['sctr'].pos = [0, 0]
-                case 'lock-canvas':
-                    drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
-                    drawing_canvas.ids['sctr'].do_scale = False if drawing_canvas.ids['sctr'].do_scale else True
-                    drawing_canvas.ids['sctr'].do_rotation = False if drawing_canvas.ids['sctr'].do_rotation else True
-                case 'new_layer':
-                    self.show_popup('new_layer')
-                case 'color':
-                    pass
-                case 'tools':
-                    pass
-                case 'brush':
-                    pass
-                case 'insert':
-                    pass
-                case 'effects':
-                    pass
+            if touch.grab_current is self:
+                match self.text:
+                    case 'save':
+                        drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
+                        drawing_canvas.ids['sctrchild'].export_to_png('hlo.png')
+                    case 'reset-size':
+                        drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
+                        drawing_canvas.ids['sctr'].scale = 1.0
+                        drawing_canvas.ids['sctr'].rotation = 0.0
+                        drawing_canvas.ids['sctr'].pos = [0, 0]
+                    case 'lock-canvas':
+                        drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
+                        drawing_canvas.ids['sctr'].do_scale = False if drawing_canvas.ids['sctr'].do_scale else True
+                        drawing_canvas.ids['sctr'].do_rotation = False if drawing_canvas.ids[
+                            'sctr'].do_rotation else True
+                        print(drawing_canvas.ids['sctr'].do_rotation, drawing_canvas.ids['sctr'].do_scale)
+                    case 'color':
+                        self.show_popup('color')
+                    case 'tools':
+                        self.show_popup('tools')
+                    case 'brush':
+                        self.show_popup('brush')
+                    case 'insert':
+                        self.show_popup('insert')
+                    case 'effects':
+                        self.show_popup('effects')
+                return True
 
     @staticmethod
     def show_popup(for_what):
-        match for_what:
-            case 'new_layer':
-                # show a popup for layer_selection
-                PopUp_show()
-            case 'color':
-                pass  # show a popup for color-picker
-            case 'tools':
-                pass  # show a popup for tools-picker
-            case 'brush':
-                pass  # show a popup for brushes
-            case 'insert':
-                pass  # show a popup for shapes
-            case 'effects':
-                pass  # show a popup for brushes
+        color_lst = ['pen_color', 'background_color']
+        PopUp_show()
+
+
+class MyListItem(Label, ButtonBehavior):
+    def __init__(self, name, color=None, **kwargs):
+        super().__init__(**kwargs)
