@@ -1,7 +1,8 @@
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
-from kivy.lang import Builder
+from kivy.logger import Logger
+from kivy.properties import NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
@@ -9,7 +10,6 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.widget import Widget
 from kivymd.uix.screen import MDScreen
-from . import util_cls
 
 bottom_sheet_fade = 'faded'
 
@@ -194,10 +194,29 @@ class BottomSheetWidget(Widget):
                              radius=[20, 20, 0, 0])
 
 
-class PopUp_show(ModalView):
+class MyListItem(Label):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+
+class PopUp_show(ModalView):
+    pop_size = NumericProperty()
+
+    def __init__(self, lst, **kwargs):
+        super().__init__(**kwargs)
+        for data in lst:
+            self.ids['list_popup_scroll'].children[0].add_widget(MyListItem(text=data))
         self.open()
+
+    def on_open(self):
+        self.size_hint_y = None
+        if self.ids['list_popup_holder'].height <= self.height:
+            self.pop_size = self.ids['list_popup_holder'].height
+        else:
+            self.pop_size = self.height
+
+    def on_pop_size(self, *args):
+        self.height = self.pop_size
 
 
 class MyButton(Label, ButtonBehavior):
@@ -231,27 +250,21 @@ class MyButton(Label, ButtonBehavior):
                     case 'lock-canvas':
                         drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
                         drawing_canvas.ids['sctr'].do_scale = False if drawing_canvas.ids['sctr'].do_scale else True
+                        drawing_canvas.ids['sctr'].do_translation = False if drawing_canvas.ids[
+                            'sctr'].do_translation else True
                         drawing_canvas.ids['sctr'].do_rotation = False if drawing_canvas.ids[
                             'sctr'].do_rotation else True
-                        print(drawing_canvas.ids['sctr'].do_rotation, drawing_canvas.ids['sctr'].do_scale)
-                    case 'color':
-                        self.show_popup('color')
-                    case 'tools':
-                        self.show_popup('tools')
-                    case 'brush':
-                        self.show_popup('brush')
-                    case 'insert':
-                        self.show_popup('insert')
-                    case 'effects':
-                        self.show_popup('effects')
+                        Logger.info('note: canvas ' + ('unlocked' if drawing_canvas.ids['sctr'].do_scale else 'locked'))
+                    case _:
+                        self.show_popup(self.text)
                 return True
 
     @staticmethod
     def show_popup(for_what):
         color_lst = ['pen_color', 'background_color']
-        PopUp_show()
-
-
-class MyListItem(Label, ButtonBehavior):
-    def __init__(self, name, color=None, **kwargs):
-        super().__init__(**kwargs)
+        tools_lst = ['gradient', 'displayed color detector', 'custom brush creator']
+        brush_lst = ['paint brush', 'pen', 'pencil', 'eraser']
+        insert_lst = ['layer', 'shape', 'layer mask', 'text', 'image']
+        effects_list = ['blur', 'vintage']
+        list_of_lists = ['color_lst', 'tools_lst', 'brush_lst', 'insert_lst', 'effects_list']
+        PopUp_show(eval([str(x) for x in list_of_lists if for_what in x][0]))
