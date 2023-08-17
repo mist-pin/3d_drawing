@@ -2,8 +2,9 @@ from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
 from kivy.logger import Logger
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, OptionProperty
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.colorpicker import ColorPicker
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
@@ -122,8 +123,6 @@ class MyScatterLayout(ScatterLayout):
 
 
 class BottomSheetBase(FloatLayout):
-    pass
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.swipe_direction = 'up'
@@ -189,14 +188,33 @@ class BottomSheetWidget(Widget):
 
         with self.parent.parent.parent.canvas.before:
             self.parent.parent.parent.canvas.before.clear()
-            Color(rgba=(.1, .1, .1, .5) if bottom_sheet_fade == 'faded' else (1, 1, 1, .3))
+            Color(rgba=(.1, .1, .1, .5) if bottom_sheet_fade == 'faded' else (1, 1, 1, .4))
             RoundedRectangle(size=self.parent.parent.parent.size, pos=self.parent.parent.parent.pos,
                              radius=[20, 20, 0, 0])
 
 
-class MyListItem(Label):
+class Clr(ModalView):
+    def __init__(self, **kwargs):
+        self.size_hint = (.9, .5)
+        super().__init__(**kwargs)
+        self.add_widget(ColorPicker())
+        self.open()
+
+
+class MyPopUpListItem(Label):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            touch.grab(self)
+
+    def on_touch_up(self, touch):
+        if self.collide_point(*touch.pos) and touch.grab_current is self:
+            touch.ungrab(self)
+            Logger.info(f'selected option: ____{self.text}____')
+            if 'pen_color' or 'background_color' in self.text:
+                Clr()
 
 
 class PopUp_show(ModalView):
@@ -205,7 +223,8 @@ class PopUp_show(ModalView):
     def __init__(self, lst, **kwargs):
         super().__init__(**kwargs)
         for data in lst:
-            self.ids['list_popup_scroll'].children[0].add_widget(MyListItem(text=data))
+            self.ids['list_popup_scroll'].children[0].add_widget(MyPopUpListItem(text='[b]' + data + '[/b]'))
+        self.opacity = 0
         self.open()
 
     def on_open(self):
@@ -217,9 +236,13 @@ class PopUp_show(ModalView):
 
     def on_pop_size(self, *args):
         self.height = self.pop_size
+        anim = Animation(opacity=1, duration=0.1)
+        anim.start(self)
 
 
-class MyButton(Label, ButtonBehavior):
+class BottomSheetButton(Label, ButtonBehavior):
+    canvas_lock_text = OptionProperty('lock-canvas', options=['lock-canvas', 'unlock-canvas'])
+
     def bg_fader(self):
         with self.canvas.before:
             self.canvas.before.clear()
@@ -247,14 +270,16 @@ class MyButton(Label, ButtonBehavior):
                         drawing_canvas.ids['sctr'].scale = 1.0
                         drawing_canvas.ids['sctr'].rotation = 0.0
                         drawing_canvas.ids['sctr'].pos = [0, 0]
-                    case 'lock-canvas':
+                    case 'lock-canvas' | 'unlock-canvas':
                         drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
                         drawing_canvas.ids['sctr'].do_scale = False if drawing_canvas.ids['sctr'].do_scale else True
                         drawing_canvas.ids['sctr'].do_translation = False if drawing_canvas.ids[
                             'sctr'].do_translation else True
                         drawing_canvas.ids['sctr'].do_rotation = False if drawing_canvas.ids[
                             'sctr'].do_rotation else True
-                        Logger.info('note: canvas ' + ('unlocked' if drawing_canvas.ids['sctr'].do_scale else 'locked'))
+                        self.canvas_lock_text = 'lock-canvas' if drawing_canvas.ids[
+                            'sctr'].do_rotation else 'unlock-canvas'
+
                     case _:
                         self.show_popup(self.text)
                 return True

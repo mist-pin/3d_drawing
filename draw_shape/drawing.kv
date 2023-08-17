@@ -1,4 +1,4 @@
-<MyButton>
+<BottomSheetButton>
     size_hint:.1,None
     height:self.width
     background_normal:''
@@ -72,21 +72,21 @@
                     pos_hint:{'center_x':.5}
                     cols:4
                     spacing:10
-                    MyButton:
+                    BottomSheetButton:
                         text:'save'
-                    MyButton:
+                    BottomSheetButton:
                         text:'reset-size'
-                    MyButton:
-                        text:'lock-canvas'
-                    MyButton:
+                    BottomSheetButton:
+                        text:self.canvas_lock_text
+                    BottomSheetButton:
                         text:'color'
-                    MyButton:
+                    BottomSheetButton:
                         text:'tools'
-                    MyButton:
+                    BottomSheetButton:
                         text:'brush'
-                    MyButton:
+                    BottomSheetButton:
                         text:'insert'
-                    MyButton:
+                    BottomSheetButton:
                         text:'effects'
 
 
@@ -117,20 +117,21 @@
                 Color:
                     rgba:[0,0,0,1]
                 RoundedRectangle:
-                    radius:[20]
+                    radius:[5]
                     size:self.size
                     pos:self.pos
-            MyListItem:
 
 
-<MyListItem>
+<MyPopUpListItem>
     canvas.before:
         Color:
-            rgba:[1,0,0,.4]
+            rgba:[1,1,1,.6]
         RoundedRectangle:
             radius:[5]
             size:self.size
             pos:self.pos
-    text:'new_layer'
     size_hint_y:None
+    font_size:20
+    markup:True
+    color:[0,0,0,1]
     height:80
