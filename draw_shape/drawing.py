@@ -1,5 +1,7 @@
+from PIL import ImageGrab
 from kivy.animation import Animation
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.graphics import Mesh, Color, Ellipse, RoundedRectangle
 from kivy.logger import Logger
 from kivy.properties import NumericProperty, OptionProperty
@@ -15,11 +17,6 @@ from kivymd.uix.screen import MDScreen
 bottom_sheet_fade = 'faded'
 
 
-def check_pos_distance(pos1: list, pos2: list) -> int:
-    pos = map(lambda x: x * -1 if x < 0 else x, [pos2[0] - pos1[0], pos2[1] - pos1[1]])
-    return int(sum(pos) / 2)
-
-
 class DrawScreen(MDScreen):
     @staticmethod
     def reset(according_to):
@@ -31,6 +28,10 @@ class DrawScreen(MDScreen):
     def on_bottom_sheet_size(height):
         global bottom_sheet_fade
         bottom_sheet_fade = 'faded' if int(height) < 300 else 'not_faded'
+
+
+class MyScatterLayout(ScatterLayout):
+    pass
 
 
 class TheMainCanvas(Label):
@@ -118,10 +119,6 @@ class TheMainCanvas(Label):
         self.mesh_touch_up(touch)
 
 
-class MyScatterLayout(ScatterLayout):
-    pass
-
-
 class BottomSheetBase(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -193,53 +190,6 @@ class BottomSheetWidget(Widget):
                              radius=[20, 20, 0, 0])
 
 
-class Clr(ModalView):
-    def __init__(self, **kwargs):
-        self.size_hint = (.9, .5)
-        super().__init__(**kwargs)
-        self.add_widget(ColorPicker())
-        self.open()
-
-
-class MyPopUpListItem(Label):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            touch.grab(self)
-
-    def on_touch_up(self, touch):
-        if self.collide_point(*touch.pos) and touch.grab_current is self:
-            touch.ungrab(self)
-            Logger.info(f'selected option: ____{self.text}____')
-            if 'pen_color' or 'background_color' in self.text:
-                Clr()
-
-
-class PopUp_show(ModalView):
-    pop_size = NumericProperty()
-
-    def __init__(self, lst, **kwargs):
-        super().__init__(**kwargs)
-        for data in lst:
-            self.ids['list_popup_scroll'].children[0].add_widget(MyPopUpListItem(text='[b]' + data + '[/b]'))
-        self.opacity = 0
-        self.open()
-
-    def on_open(self):
-        self.size_hint_y = None
-        if self.ids['list_popup_holder'].height <= self.height:
-            self.pop_size = self.ids['list_popup_holder'].height
-        else:
-            self.pop_size = self.height
-
-    def on_pop_size(self, *args):
-        self.height = self.pop_size
-        anim = Animation(opacity=1, duration=0.1)
-        anim.start(self)
-
-
 class BottomSheetButton(Label, ButtonBehavior):
     canvas_lock_text = OptionProperty('lock-canvas', options=['lock-canvas', 'unlock-canvas'])
 
@@ -287,9 +237,71 @@ class BottomSheetButton(Label, ButtonBehavior):
     @staticmethod
     def show_popup(for_what):
         color_lst = ['pen_color', 'background_color']
-        tools_lst = ['gradient', 'displayed color detector', 'custom brush creator']
+        tools_lst = ['gradient', 'eye dropper', 'custom brush creator']
         brush_lst = ['paint brush', 'pen', 'pencil', 'eraser']
         insert_lst = ['layer', 'shape', 'layer mask', 'text', 'image']
         effects_list = ['blur', 'vintage']
         list_of_lists = ['color_lst', 'tools_lst', 'brush_lst', 'insert_lst', 'effects_list']
         PopUp_show(eval([str(x) for x in list_of_lists if for_what in x][0]))
+
+
+class PopUp_show(ModalView):
+    pop_size = NumericProperty()
+
+    def __init__(self, lst, **kwargs):
+        super().__init__(**kwargs)
+        for data in lst:
+            self.ids['list_popup_scroll'].children[0].add_widget(MyPopUpListItem(text='[b]' + data + '[/b]'))
+        self.opacity = 0
+        self.open()
+
+    def on_open(self):
+        self.size_hint_y = None
+        if self.ids['list_popup_holder'].height <= self.height:
+            self.pop_size = self.ids['list_popup_holder'].height
+        else:
+            self.pop_size = self.height
+
+    def on_pop_size(self, *args):
+        self.height = self.pop_size
+        anim = Animation(opacity=1, duration=0.1)
+        anim.start(self)
+
+
+class MyPopUpListItem(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            touch.grab(self)
+
+    def on_touch_up(self, touch):
+        if self.collide_point(*touch.pos) and touch.grab_current is self:
+            touch.ungrab(self)
+            Logger.info(f'selected option: ____{self.text}____')
+            match self.text[3:-4]:
+                case 'pen_color' | 'background_color':
+                    Clr()
+                case '':
+                    pass
+
+
+class Clr(ModalView):
+    def __init__(self, **kwargs):
+        self.size_hint = (.9, .5)
+        super().__init__(**kwargs)
+        self.add_widget(ColorPicker())
+        self.open()
+
+
+def check_pos_distance(pos1: list, pos2: list) -> int:
+    pos = map(lambda x: x * -1 if x < 0 else x, [pos2[0] - pos1[0], pos2[1] - pos1[1]])
+    return int(sum(pos) / 2)
+
+
+def get_color_at_touch(self):
+    x, y = Window.mouse_pos  # Get mouse coordinates
+    screenshot = ImageGrab.grab(bbox=(x, y, x + 1, y + 1))  # Capture a 1x1 pixel screenshot
+    color = screenshot.getpixel((0, 0))  # Get the color of the pixel
+    return f'#{color[0]:02X}{color[1]:02X}{color[2]:02X}'  # Convert to hex format
