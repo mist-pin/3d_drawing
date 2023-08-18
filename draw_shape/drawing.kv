@@ -20,18 +20,19 @@
         do_translation:False
         size_hint:1,1
         pos:root.pos
-        TheMainCanvas:
-            id:sctrchild
-            canvas.before:
-                Color:
-                    rgba:[0,0,0,1]
-                Rectangle:
-                    size:self.size
-                    pos:self.pos
-            text:' '
-            font_size:300
-            pos:root.pos
-            size_hint:1,1
+        FloatLayout:
+            id:layer_holder
+            BaseLayer:
+                canvas.before:
+                    Color:
+                        rgba:[0,0,0,1]
+                    Rectangle:
+                        size:self.size
+                        pos:self.pos
+                text:' '
+                font_size:300
+                pos:root.pos
+                size_hint:1,1
     BottomSheetBase:
         id:scroll_view
         size_hint:.97,None

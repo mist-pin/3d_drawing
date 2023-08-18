@@ -34,7 +34,7 @@ class MyScatterLayout(ScatterLayout):
     pass
 
 
-class TheMainCanvas(Label):
+class BaseLayer(Widget):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -214,7 +214,7 @@ class BottomSheetButton(Label, ButtonBehavior):
                 match self.text:
                     case 'save':
                         drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
-                        drawing_canvas.ids['sctrchild'].export_to_png('hlo.png')
+                        drawing_canvas.ids['layer_holder'].export_as_image().save('hlo.png')
                     case 'reset-size':
                         drawing_canvas = [x for x in self.walk_reverse(loopback=False)][-2]
                         drawing_canvas.ids['sctr'].scale = 1.0
@@ -281,10 +281,10 @@ class MyPopUpListItem(Label):
             touch.ungrab(self)
             Logger.info(f'selected option: ____{self.text}____')
             match self.text[3:-4]:
+                # color:
                 case 'pen_color' | 'background_color':
                     Clr()
-                case '':
-                    pass
+                # insert:
 
 
 class Clr(ModalView):
